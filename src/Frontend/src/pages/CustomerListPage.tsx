@@ -26,16 +26,16 @@ interface CustomerListQuery {
 
 export default function CustomerListPage() {
   const [list, setList] = useState<CustomerListQuery[]>([]);
+  const [searchText, setSearchText] = useState("");
 
-  useEffect(() => {
-    fetch("/api/customers/list")
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        setList(data as CustomerListQuery[]);
-      });
-  }, []);
+
+useEffect(() => {
+  fetch(`/api/customers/list?SearchText=${encodeURIComponent(searchText)}`)
+    .then((response) => response.json())
+    .then((data) => {
+      setList(data as CustomerListQuery[]);
+    });
+}, [searchText]);
 
   const handleExportXml = () => {
   const xmlContent = `
@@ -83,7 +83,14 @@ const escapeXml = (unsafe: string): string =>
         Customers
       </Typography>
 
-      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
+      <Stack direction="row" spacing={2} justifyContent="space-between" sx={{ mb: 2 }}>
+        <input
+          type="text"
+          placeholder="Cerca per nome o email"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ padding: '8px', flexGrow: 1 }}
+        />
         <Button variant="outlined" onClick={handleExportXml}>
           Export XML
         </Button>
