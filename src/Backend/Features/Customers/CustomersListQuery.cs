@@ -33,7 +33,9 @@ internal class CustomerListQueryHandler(BackendContext context) : IRequestHandle
 
     public async Task<List<CustomerListQueryResponse>> Handle(CustomerListQuery request, CancellationToken cancellationToken)
     {
-        var query = context.Customers.AsQueryable();
+            var query = context.Customers
+            .Include(c => c.CustomerCategory)
+            .AsQueryable();
         
         //Filtro per cercare nei campi “Nome” ed “Email”.
         if (!string.IsNullOrEmpty(request.SearchText))
@@ -50,33 +52,26 @@ internal class CustomerListQueryHandler(BackendContext context) : IRequestHandle
             query = query.Where(q => q.Name.ToLower().Contains(request.Name.ToLower()));
 
 
-        var data = await query.OrderBy(q => q.Name).ToListAsync(cancellationToken);
-        var result = new List<CustomerListQueryResponse>();
 
-        foreach (var item in data)
-        {
-            var resultItem = new CustomerListQueryResponse
+        var result = await query
+            .OrderBy(q => q.Name)
+            .Select(q => new CustomerListQueryResponse
             {
-                Id = item.Id,
-                Name = item.Name,
-                Address = item.Address,
-                Email = item.Email,
-                Phone = item.Phone,
-                Iban = item.Iban,
-            };
-
-            //record della tabella CustomerCategory
-            var customerCategory = await context.CustomerCategories.SingleOrDefaultAsync(q => q.Id == item.CustomerCategoryId, cancellationToken);
-            if (customerCategory is not null)
-                resultItem.CustomerCategory = new CustomerListQueryResponseCustomerCategory
-                {
-                    Code = customerCategory.Code,
-                    Description = customerCategory.Description
-                };
-
-
-            result.Add(resultItem);
-        }
+                Id = q.Id,
+                Name = q.Name,
+                Address = q.Address,
+                Email = q.Email,
+                Phone = q.Phone,
+                Iban = q.Iban,
+                CustomerCategory = q.CustomerCategory != null
+                    ? new CustomerListQueryResponseCustomerCategory
+                    {
+                        Code = q.CustomerCategory.Code,
+                        Description = q.CustomerCategory.Description
+                    }
+                    : null
+            })
+            .ToListAsync(cancellationToken);
 
         return result;
     }
