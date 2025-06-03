@@ -27,15 +27,17 @@ interface CustomerListQuery {
 export default function CustomerListPage() {
   const [list, setList] = useState<CustomerListQuery[]>([]);
   const [searchText, setSearchText] = useState("");
+  const [SearchText2, setSearchText2] = useState("");
+
 
 
 useEffect(() => {
-  fetch(`/api/customers/list?SearchText=${encodeURIComponent(searchText)}`)
+  fetch(`/api/customers/list?SearchText=${encodeURIComponent(SearchText2)}`)
     .then((response) => response.json())
     .then((data) => {
       setList(data as CustomerListQuery[]);
     });
-}, [searchText]);
+}, [SearchText2]);
 
   const handleExportXml = () => {
   const xmlContent = `
@@ -83,18 +85,23 @@ const escapeXml = (unsafe: string): string =>
         Customers
       </Typography>
 
-      <Stack direction="row" spacing={2} justifyContent="space-between" sx={{ mb: 2 }}>
-        <input
-          type="text"
-          placeholder="Cerca per nome o email"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{ padding: '8px', flexGrow: 1 }}
-        />
-        <Button variant="outlined" onClick={handleExportXml}>
-          Export XML
-        </Button>
-      </Stack>
+<Stack direction="row" spacing={2} justifyContent="space-between" sx={{ mb: 2 }}>
+  <input
+    type="text"
+    placeholder="Cerca per nome o email"
+    value={searchText}
+    onChange={(e) => setSearchText(e.target.value)}
+    style={{ padding: '8px', flexGrow: 1 }}
+  />
+
+  <Button variant="contained" onClick={() => setSearchText2(searchText)}>
+    Cerca
+  </Button>
+
+  <Button variant="outlined" onClick={handleExportXml}>
+    Export XML
+  </Button>
+</Stack>
 
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
